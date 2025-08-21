@@ -15,23 +15,26 @@ sandbox_base_image = (
         "build-essential",
         "nodejs",
         "npm",
-        "unzip",  # its not really required?
+        "unzip",
         "gh",
     )
     .run_commands(
-        # Install Claude CLI globally and make sure it's in PATH
-        "npm install -g @anthropic-ai/claude-code",
+        # Install Claude CLI and Claude Code Router globally
+        "npm install -g @anthropic-ai/claude-code @musistudio/claude-code-router",
         # Add npm global bin to PATH
         "echo 'export PATH=/usr/local/lib/node_modules/.bin:$PATH' >> ~/.bashrc",
         # Also add to current PATH for immediate use
-        "export PATH=/usr/local/lib/node_modules/.bin:$PATH"
+        "export PATH=/usr/local/lib/node_modules/.bin:$PATH",
+        # Create Claude Code Router config directory
+        "mkdir -p ~/.claude-code-router"
     )
     .pip_install(
         "supabase",
         "modal",
         "pyjwt[crypto]", #github app jwt generation
         "requests",
-        "claude-code-sdk"
+        "claude-code-sdk",
+        "openai"  # Add OpenAI client for direct API access if needed
     )
 )
 
@@ -129,6 +132,46 @@ def run_claude_agent(repo_url: str, user_github_username: str, chat_id: str, pro
         timeout=1800
     )
     
+    # Get DeepInfra API key from environment or use default
+    deepinfra_api_key = os.environ.get("DEEPINFRA_API_KEY", "Fe3V9w1bWf50qX6IeBtsvqLqxIDhyzyE")
+    
+    # Create Claude Code Router config
+    router_config = {
+        "LOG": True,
+        "API_TIMEOUT_MS": 600000,
+        "Providers": [
+            {
+                "name": "deepinfra",
+                "api_base_url": "https://api.deepinfra.com/v1/openai/chat/completions",
+                "api_key": deepinfra_api_key,
+                "models": ["openai/gpt-oss-120b"],
+                "transformer": {
+                    "use": ["openai"]
+                }
+            }
+        ],
+        "Router": {
+            "default": "deepinfra,openai/gpt-oss-120b",
+            "background": "deepinfra,openai/gpt-oss-120b",
+            "think": "deepinfra,openai/gpt-oss-120b",
+            "longContext": "deepinfra,openai/gpt-oss-120b",
+            "webSearch": "deepinfra,openai/gpt-oss-120b"
+        }
+    }
+
+    # Write the config file
+    config_dir = sandbox.exec("mkdir", "-p", "~/.claude-code-router").wait()
+    write_config = sandbox.exec(
+        "sh", "-c", f"cat > ~/.claude-code-router/config.json << 'EOF'\n{json.dumps(router_config, indent=2)}\nEOF"
+    )
+    write_config.wait()
+
+    # Start the Claude Code Router service
+    print("Starting Claude Code Router service...")
+    start_router = sandbox.exec("ccr", "start")
+    start_router.wait()
+    print("Claude Code Router service started")
+    
     try:
         # Authenticate gh CLI
         authenticate_gh_cli(sandbox, access_token)
@@ -184,6 +227,10 @@ import os
 import asyncio
 import json
 from datetime import datetime, timezone
+
+# Set environment variables to use the Claude Code Router
+os.environ["ANTHROPIC_BASE_URL"] = "http://localhost:3456"
+os.environ["ANTHROPIC_API_KEY"] = "any-string-is-ok"  # Router ignores this
 
 # Change to the repo directory BEFORE importing Claude SDK
 os.chdir("/tmp/repo")
@@ -835,5 +882,3 @@ asyncio.run(main())
         }
     finally:
         sandbox.terminate()
-
-
