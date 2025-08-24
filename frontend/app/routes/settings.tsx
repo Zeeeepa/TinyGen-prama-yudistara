@@ -3,6 +3,7 @@ import { FaGithub } from "react-icons/fa";
 import { useAuth } from "~/lib/supabase-auth";
 import { AppLayout } from "~/components/AppLayout";
 import { useSearchParams } from "react-router";
+import { Brain, Eye, EyeOff } from "lucide-react";
 
 export function meta() {
   return [
@@ -16,6 +17,12 @@ export default function Settings() {
   const [appInstalled, setAppInstalled] = useState(false);
   const [checkingInstallation, setCheckingInstallation] = useState(true);
   const [searchParams] = useSearchParams();
+  
+  // DeepSeek API key state
+  const [deepSeekApiKey, setDeepSeekApiKey] = useState<string>('');
+  const [showApiKey, setShowApiKey] = useState<boolean>(false);
+  const [apiKeySaved, setApiKeySaved] = useState<boolean>(false);
+  const [apiKeyError, setApiKeyError] = useState<string | null>(null);
   
   useEffect(() => {
     // Check if GitHub just redirected us here after installation
@@ -36,6 +43,45 @@ export default function Settings() {
       checkGitHubAppInstallation();
     }
   }, [searchParams]);
+  
+  // Load saved DeepSeek API key from localStorage
+  useEffect(() => {
+    const savedApiKey = localStorage.getItem('deepseek_api_key');
+    if (savedApiKey) {
+      setDeepSeekApiKey(savedApiKey);
+      setApiKeySaved(true);
+    }
+  }, []);
+  
+  // Handle saving DeepSeek API key
+  const handleSaveApiKey = () => {
+    if (!deepSeekApiKey.trim()) {
+      setApiKeyError('API key cannot be empty');
+      return;
+    }
+    
+    // Simple validation for DeepSeek API key format
+    if (!deepSeekApiKey.match(/^[A-Za-z0-9]{32,}$/)) {
+      setApiKeyError('Invalid API key format');
+      return;
+    }
+    
+    // Save to localStorage
+    localStorage.setItem('deepseek_api_key', deepSeekApiKey);
+    setApiKeySaved(true);
+    setApiKeyError(null);
+    
+    // Hide the API key after saving
+    setShowApiKey(false);
+  };
+  
+  // Handle clearing DeepSeek API key
+  const handleClearApiKey = () => {
+    localStorage.removeItem('deepseek_api_key');
+    setDeepSeekApiKey('');
+    setApiKeySaved(false);
+    setApiKeyError(null);
+  };
   
   const checkGitHubAppInstallation = async () => {
     if (!user?.user_metadata?.user_name) {
@@ -225,6 +271,78 @@ export default function Settings() {
                 </div>
               </div>
             </div>
+          </div>
+        </div>
+        
+        {/* DeepSeek API Key Section */}
+        <div className="bg-black/30 backdrop-blur-xl border border-white/10 rounded-2xl p-8 mt-8">
+          <div className="flex items-center gap-3 mb-6">
+            <Brain className="w-6 h-6 text-blue-400" />
+            <h2 className="text-2xl font-bold text-white">DeepSeek Integration</h2>
+          </div>
+          
+          <p className="text-white/70 mb-6">
+            Configure your DeepSeek API key to use the DeepSeek AI models. Your API key is stored locally in your browser.
+          </p>
+          
+          <div className="space-y-4">
+            <div>
+              <label htmlFor="deepseek-api-key" className="block text-sm font-medium text-white/80 mb-2">
+                DeepSeek API Key
+              </label>
+              <div className="relative">
+                <input
+                  id="deepseek-api-key"
+                  type={showApiKey ? "text" : "password"}
+                  value={deepSeekApiKey}
+                  onChange={(e) => setDeepSeekApiKey(e.target.value)}
+                  placeholder="Enter your DeepSeek API key"
+                  className="w-full px-4 py-3 bg-black/50 border border-white/20 rounded-lg text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowApiKey(!showApiKey)}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-white/60 hover:text-white"
+                >
+                  {showApiKey ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                </button>
+              </div>
+              {apiKeyError && (
+                <p className="mt-2 text-red-400 text-sm">{apiKeyError}</p>
+              )}
+              <p className="mt-2 text-white/40 text-xs">
+                You can get your API key from the DeepSeek dashboard.
+              </p>
+            </div>
+            
+            <div className="flex gap-3">
+              <button
+                onClick={handleSaveApiKey}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              >
+                Save API Key
+              </button>
+              {apiKeySaved && (
+                <button
+                  onClick={handleClearApiKey}
+                  className="px-4 py-2 bg-red-600/20 text-red-400 border border-red-600/30 rounded-lg hover:bg-red-600/30 transition-colors"
+                >
+                  Clear API Key
+                </button>
+              )}
+            </div>
+            
+            {apiKeySaved && (
+              <div className="mt-4 p-3 bg-green-500/10 border border-green-500/20 rounded-lg">
+                <p className="text-green-400 flex items-center gap-2">
+                  <span className="text-xl">✓</span>
+                  DeepSeek API key saved successfully
+                </p>
+                <p className="text-white/60 text-sm mt-1">
+                  You can now use the DeepSeek AI models in the DeepSeek chat interface.
+                </p>
+              </div>
+            )}
           </div>
         </div>
       </div>

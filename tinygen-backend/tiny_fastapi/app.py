@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from .routers import agents
+from .routers import agents, deepseek
 
 
 
@@ -18,7 +18,8 @@ fastapi_client.add_middleware(
 
 
 fastapi_client.include_router(agents.router)
+fastapi_client.include_router(deepseek.router)
 
-# @fastapi_client.get("/")
-# def read_root():
-#     return {"message": "Hello, World!"}
+@fastapi_client.get("/")
+def read_root():
+    return {"message": "Welcome to TinyGen API with DeepSeek integration!"}

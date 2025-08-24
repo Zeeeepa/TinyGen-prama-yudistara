@@ -4,5 +4,6 @@ export default [
   index("routes/home.tsx"),
   route("recent", "routes/recent.tsx"),
   route("settings", "routes/settings.tsx"),
-  route("chat/:chatId", "routes/chat.$chatId.tsx")
+  route("chat/:chatId", "routes/chat.$chatId.tsx"),
+  route("deepseek", "routes/deepseek.tsx")
 ] satisfies RouteConfig;

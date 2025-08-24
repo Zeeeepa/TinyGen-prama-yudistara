@@ -1,5 +1,5 @@
 import { Link, useLocation, useSearchParams } from "react-router";
-import { Plus, Clock, LogOut, Settings } from "lucide-react";
+import { Plus, Clock, LogOut, Settings, Brain } from "lucide-react";
 import { Separator } from "~/components/ui/separator";
 import { useAuth } from "~/lib/supabase-auth";
 import { useSidebar } from "~/lib/sidebar-context";
@@ -21,6 +21,7 @@ export function AppLayout({ children }: AppLayoutProps) {
   const isHomePage = location.pathname === "/";
   const isRecentPage = location.pathname === "/recent";
   const isSettingsPage = location.pathname === "/settings";
+  const isDeepSeekPage = location.pathname === "/deepseek";
   const hasActiveChat = isHomePage && searchParams.has('chat');
 
   return (
@@ -89,6 +90,22 @@ export function AppLayout({ children }: AppLayoutProps) {
               <span className={`ml-3 text-sm whitespace-nowrap overflow-hidden transition-all duration-300 ${
                 sidebarHovered ? 'opacity-100 w-auto' : 'opacity-0 w-0'
               }`}>Recent Tasks</span>
+            </Link>
+
+            <Link
+              to="/deepseek"
+              className={`w-full flex items-center px-4 py-2 transition-all duration-200 ${
+                isDeepSeekPage
+                  ? 'bg-white/10 text-white'
+                  : 'text-white/60 hover:bg-white/5 hover:text-white'
+              }`}
+            >
+              <div className="w-8 h-8 flex items-center justify-center flex-shrink-0">
+                <Brain className="w-5 h-5" />
+              </div>
+              <span className={`ml-3 text-sm whitespace-nowrap overflow-hidden transition-all duration-300 ${
+                sidebarHovered ? 'opacity-100 w-auto' : 'opacity-0 w-0'
+              }`}>DeepSeek AI</span>
             </Link>
           </nav>
 
