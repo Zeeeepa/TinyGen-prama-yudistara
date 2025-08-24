@@ -8,67 +8,42 @@ BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
 echo -e "${BLUE}===========================================================${NC}"
-echo -e "${BLUE}       Running TinyGen with DeepInfra Integration          ${NC}"
+echo -e "${BLUE}       TinyGen with DeepInfra Integration                  ${NC}"
 echo -e "${BLUE}===========================================================${NC}"
 
-# Check if .env file exists and load it
-if [ -f .env ]; then
-    export $(cat .env | xargs)
-    echo -e "${GREEN}Loaded API key from .env file.${NC}"
+# Check if DeepInfra API key is provided
+if [ -z "$1" ]; then
+    echo -e "${YELLOW}No API key provided. Using default key.${NC}"
+    export DEEPINFRA_API_KEY="Fe3V9w1bWf50qX6IeBtsvqLqxIDhyzyE"
 else
-    # Check if DEEPINFRA_API_KEY is set in environment
-    if [ -z "$DEEPINFRA_API_KEY" ]; then
-        echo -e "${YELLOW}No API key found. Using default key.${NC}"
-        export DEEPINFRA_API_KEY="Fe3V9w1bWf50qX6IeBtsvqLqxIDhyzyE"
-    else
-        echo -e "${GREEN}Using API key from environment: $DEEPINFRA_API_KEY${NC}"
-    fi
+    echo -e "${YELLOW}Using provided API key.${NC}"
+    export DEEPINFRA_API_KEY="$1"
 fi
 
-# Check if Claude Code Router is running
-if ! ccr status | grep -q -i "status: running"; then
-    echo -e "${YELLOW}Claude Code Router is not running. Starting it now...${NC}"
-    ccr start
-    
-    # Wait for it to start
-    sleep 2
-    
-    if ! ccr status | grep -q -i "status: running"; then
-        echo -e "${RED}Failed to start Claude Code Router. Please check the logs.${NC}"
-        exit 1
-    fi
+# Step 1: Deploy Claude Code Router with DeepSeek
+echo -e "${BLUE}Step 1: Deploying Claude Code Router with DeepSeek...${NC}"
+./deploy-claude-router.sh
+
+# Check if Claude Code Router deployment was successful
+if [ $? -ne 0 ]; then
+    echo -e "${RED}Failed to deploy Claude Code Router. Exiting.${NC}"
+    exit 1
 fi
 
-echo -e "${GREEN}Claude Code Router is running.${NC}"
+# Step 2: Set up TinyGen with virtual environment
+echo -e "${BLUE}Step 2: Setting up TinyGen with virtual environment...${NC}"
+./setup-tinygen.sh
 
-# Start the backend server
-echo -e "${BLUE}Starting TinyGen backend server...${NC}"
-cd tinygen-backend
-python -m tiny_fastapi.app &
-BACKEND_PID=$!
+# Check if TinyGen setup was successful
+if [ $? -ne 0 ]; then
+    echo -e "${RED}Failed to set up TinyGen. Exiting.${NC}"
+    exit 1
+fi
 
-# Wait for backend to start
-echo -e "${YELLOW}Waiting for backend to start...${NC}"
-sleep 5
+# Step 3: Start the TinyGen web interface
+echo -e "${BLUE}Step 3: Starting TinyGen web interface...${NC}"
+./start-webpage.sh
 
-# Start the frontend
-echo -e "${BLUE}Starting TinyGen frontend...${NC}"
-cd ../frontend
-npm run dev &
-FRONTEND_PID=$!
-
-echo -e "${GREEN}===========================================================${NC}"
-echo -e "${GREEN}TinyGen is now running!${NC}"
-echo -e "${GREEN}===========================================================${NC}"
-echo -e "${YELLOW}Backend server: http://localhost:8000${NC}"
-echo -e "${YELLOW}Frontend: http://localhost:3000${NC}"
-echo -e "${YELLOW}DeepSeek Chat: http://localhost:3000/deepseek${NC}"
-echo -e "${GREEN}===========================================================${NC}"
-echo -e "${YELLOW}Press Ctrl+C to stop all services${NC}"
-
-# Handle cleanup on exit
-trap "kill $BACKEND_PID $FRONTEND_PID; echo -e '${RED}Stopping TinyGen...${NC}'; exit" INT TERM EXIT
-
-# Wait for user to press Ctrl+C
-wait
+# This script will not reach this point unless the user presses Ctrl+C
+# because start-webpage.sh has a wait at the end
 
