@@ -1,0 +1,28 @@
+version: '3.8'
+
+services:
+  tinygen:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: tinygen-deepseek
+    environment:
+      - DEEPSEEK_API_KEY=${DEEPSEEK_API_KEY}
+    volumes:
+      - ./:/app
+      - tinygen-config:/root/.claude-code-router
+    ports:
+      - "8000:8000"
+    command: >
+      bash -c "
+        if [ ! -f /root/.claude-code-router/config.json ]; then
+          ./deploy-deepseek.sh;
+        fi;
+        echo 'TinyGen with DeepSeek integration is ready!';
+        echo 'Run commands with: docker exec -it tinygen-deepseek ./tinygen_cli.py \"Your prompt\"';
+        tail -f /dev/null
+      "
+
+volumes:
+  tinygen-config:
+
