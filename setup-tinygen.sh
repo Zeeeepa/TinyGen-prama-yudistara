@@ -42,6 +42,30 @@ python3 -m venv .venv
 echo -e "${BLUE}Activating virtual environment...${NC}"
 source .venv/bin/activate
 
+# Create a minimal setup.py file if it doesn't exist
+if [ ! -f "setup.py" ]; then
+    echo -e "${YELLOW}Creating minimal setup.py file...${NC}"
+    cat > setup.py << EOF
+from setuptools import setup, find_packages
+
+setup(
+    name="tinygen",
+    version="0.1.0",
+    packages=find_packages(),
+    install_requires=[
+        "supabase",
+        "modal",
+        "pyjwt[crypto]",
+        "requests",
+        "claude-code-sdk",
+        "openai",
+        "fastapi",
+        "uvicorn",
+    ],
+)
+EOF
+fi
+
 # Install TinyGen in development mode
 echo -e "${BLUE}Installing TinyGen in development mode...${NC}"
 pip install -e .
@@ -91,4 +115,3 @@ echo -e "${GREEN}===========================================================${NC
 
 # Return to original directory
 cd ..
-

@@ -55,8 +55,8 @@ fi
 
 # Start the backend server
 echo -e "${BLUE}Starting TinyGen backend server...${NC}"
-cd backend
-python -m app &
+cd tinygen-backend
+python -m tiny_fastapi.app &
 BACKEND_PID=$!
 
 # Wait for backend to start
@@ -83,4 +83,3 @@ trap "kill $BACKEND_PID $FRONTEND_PID; echo -e '${RED}Stopping TinyGen...${NC}';
 
 # Wait for user to press Ctrl+C
 wait
-
