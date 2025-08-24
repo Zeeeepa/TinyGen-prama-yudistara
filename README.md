@@ -1,98 +1,97 @@
-# TinyGen
+# TinyGen with DeepInfra Integration
 
-TinyGen is an AI-powered coding assistant that helps you write, understand, and improve code.
+This repository contains scripts to set up and run TinyGen with DeepInfra integration, allowing you to use powerful AI models for code generation and assistance.
 
-## Features
+## Quick Start
 
-- **AI-powered code generation**: Get help with writing code in various programming languages
-- **Code explanation**: Understand complex code snippets with AI-generated explanations
-- **GitHub integration**: Work with your GitHub repositories directly
-- **DeepSeek integration**: Interact with DeepSeek's powerful language models
+Follow these steps to get TinyGen up and running with DeepInfra integration:
 
-## Getting Started
+### 1. Deploy Claude Code Router with DeepSeek Configuration
 
-### Prerequisites
-
-- Node.js (v16 or higher)
-- Python (v3.8 or higher)
-- npm or yarn
-
-### Installation
-
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/Zeeeepa/TinyGen-prama-yudistara.git
-   cd TinyGen-prama-yudistara
-   ```
-
-2. Install backend dependencies:
-   ```bash
-   cd tinygen-backend
-   pip install -r requirements.txt
-   cd ..
-   ```
-
-3. Install frontend dependencies:
-   ```bash
-   cd frontend
-   npm install
-   cd ..
-   ```
-
-### Running TinyGen
-
-1. Start the backend server:
-   ```bash
-   cd tinygen-backend
-   python -m tiny_fastapi.app
-   ```
-
-2. In a new terminal, start the frontend:
-   ```bash
-   cd frontend
-   npm run dev
-   ```
-
-3. Open your browser and navigate to:
-   ```
-   http://localhost:3000
-   ```
-
-## DeepSeek Integration
-
-TinyGen includes integration with DeepSeek's powerful language models, providing advanced AI capabilities.
-
-### Deploying DeepSeek Integration
-
-Run the deployment script:
 ```bash
-./deploy-deepseek.sh
+./deploy-claude-router.sh
 ```
 
-### Running TinyGen with DeepSeek Integration
+This script will:
+- Install Claude Code Router globally
+- Configure it to use DeepInfra API with DeepSeek models
+- Start the Claude Code Router service
 
-Use the provided script to run TinyGen with DeepSeek integration:
+### 2. Set Up TinyGen with Virtual Environment
+
 ```bash
-./run-tinygen.sh
+./setup-tinygen.sh
 ```
 
-### DeepSeek UI
+This script will:
+- Clone the TinyGen repository
+- Create a Python virtual environment
+- Install TinyGen in development mode
+- Set up automatic virtual environment activation when in the DeepCode directory
 
-TinyGen includes a dedicated UI for interacting with DeepSeek models. Access it at:
+### 3. Start the TinyGen Web Interface
+
+```bash
+./start-webpage.sh
 ```
-http://localhost:3000/deepseek
+
+This script will:
+- Start the TinyGen backend server
+- Start the TinyGen frontend
+- Provide URLs to access the web interface
+
+## API Key Configuration
+
+The DeepInfra API key is set to `Fe3V9w1bWf50qX6IeBtsvqLqxIDhyzyE` by default. You can override this by setting the `DEEPINFRA_API_KEY` environment variable:
+
+```bash
+export DEEPINFRA_API_KEY="your_api_key_here"
 ```
 
-For more information about the DeepSeek UI integration, see [DEEPSEEK_UI.md](DEEPSEEK_UI.md).
+## Accessing TinyGen
 
-## License
+Once the web interface is running, you can access TinyGen at:
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+- Frontend: http://localhost:3000
+- Backend API: http://localhost:8000
 
-## Acknowledgements
+## Troubleshooting
 
-- [React](https://reactjs.org/)
-- [FastAPI](https://fastapi.tiangolo.com/)
-- [DeepSeek](https://deepseek.com/)
-- [Claude Code Router](https://github.com/anthropics/claude-code-router)
+### Claude Code Router Issues
+
+If you encounter issues with Claude Code Router, you can check its status:
+
+```bash
+ccr status
+```
+
+To restart it:
+
+```bash
+ccr stop
+ccr start
+```
+
+### Virtual Environment Issues
+
+If the virtual environment is not activated automatically, you can activate it manually:
+
+```bash
+cd tinygen
+source .venv/bin/activate
+```
+
+### Web Interface Issues
+
+If the web interface doesn't start properly, try running the backend and frontend separately:
+
+```bash
+# Start backend
+cd tinygen/backend
+python -m app
+
+# In another terminal
+cd tinygen/frontend
+npm run dev
+```
 
